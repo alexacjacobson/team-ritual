@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react'
-import NavHeader from './components/NavHeader'
 import Timer from './components/Timer'
 import Board from './components/Board'
 import Synthesize from './components/Synthesize'
@@ -104,7 +103,6 @@ export default function App() {
   return (
     <div className="app">
       {!userInitials && <InitialsModal onConfirm={handleJoin} />}
-      <NavHeader />
       <main className="main">
         <div className="page-header">
           <div className="page-title">
@@ -112,20 +110,22 @@ export default function App() {
           </div>
           <Timer />
         </div>
-        <Board board={board} onAdd={addCard} onDelete={deleteCard} />
-        <Synthesize
-          canSynthesize={canSynthesize}
-          synthesizing={synthesizing}
-          synthesis={synthesis}
-          onSynthesize={synthesize}
-        />
-        <div className="clear-area">
-          <button
-            className={`btn-clear${clearConfirm ? ' confirming' : ''}`}
-            onClick={clearBoard}
-          >
-            {clearConfirm ? 'Are you sure?' : 'Clear board'}
-          </button>
+        <div className="board-card">
+          <div className="board-card-top">
+            <button
+              className={`btn-clear${clearConfirm ? ' confirming' : ''}`}
+              onClick={clearBoard}
+            >
+              {clearConfirm ? 'Are you sure?' : 'Clear board'}
+            </button>
+          </div>
+          <Board board={board} onAdd={addCard} onDelete={deleteCard} />
+          <Synthesize
+            canSynthesize={canSynthesize}
+            synthesizing={synthesizing}
+            synthesis={synthesis}
+            onSynthesize={synthesize}
+          />
         </div>
       </main>
     </div>

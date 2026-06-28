@@ -114,7 +114,7 @@ export default function Timer() {
         >
           −
         </button>
-        <span className={`timer-time${expired ? ' expired' : ''}`}>
+        <span className={`timer-time${expired ? ' expired' : ''}`} style={{ fontFamily: "'JetBrains Mono', monospace" }}>
           {timeStr}
         </span>
         <button
