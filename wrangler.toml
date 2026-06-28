@@ -1,0 +1,15 @@
+name = "teamritual"
+compatibility_date = "2024-01-01"
+main = "worker.js"
+
+# Replace RITUAL_KV_ID with the ID from: wrangler kv namespace create RITUAL_KV
+[[kv_namespaces]]
+binding = "RITUAL_KV"
+id = "RITUAL_KV_ID"
+preview_id = "RITUAL_KV_PREVIEW_ID"
+
+[ai]
+binding = "AI"
+
+[assets]
+directory = "./dist"
