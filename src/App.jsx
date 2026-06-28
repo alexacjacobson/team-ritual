@@ -3,8 +3,12 @@ import NavHeader from './components/NavHeader'
 import Timer from './components/Timer'
 import Board from './components/Board'
 import Synthesize from './components/Synthesize'
+import InitialsModal from './components/InitialsModal'
 
 export default function App() {
+  const [userInitials, setUserInitials] = useState(
+    () => localStorage.getItem('userInitials') || null
+  )
   const [board, setBoard] = useState({ rose: [], bud: [], thorn: [] })
   const [synthesis, setSynthesis] = useState(null)
   const [synthesizing, setSynthesizing] = useState(false)
@@ -24,20 +28,30 @@ export default function App() {
     } catch (_) {}
   }
 
+  const handleJoin = (initials) => {
+    localStorage.setItem('userInitials', initials)
+    setUserInitials(initials)
+  }
+
   const addCard = async (column, text) => {
     const tempId = `temp-${Date.now()}`
     setBoard((prev) => ({
       ...prev,
       [column]: [
         ...prev[column],
-        { id: tempId, text, createdAt: new Date().toISOString() },
+        {
+          id: tempId,
+          text,
+          createdAt: new Date().toISOString(),
+          initials: userInitials || '',
+        },
       ],
     }))
     try {
       await fetch('/api/board/card', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ column, text }),
+        body: JSON.stringify({ column, text, initials: userInitials || '' }),
       })
     } catch (_) {}
   }
@@ -89,9 +103,15 @@ export default function App() {
 
   return (
     <div className="app">
+      {!userInitials && <InitialsModal onConfirm={handleJoin} />}
       <NavHeader />
       <main className="main">
-        <Timer />
+        <div className="page-header">
+          <div className="page-title">
+            <span className="page-title-eyebrow">Ritual:</span>
+          </div>
+          <Timer />
+        </div>
         <Board board={board} onAdd={addCard} onDelete={deleteCard} />
         <Synthesize
           canSynthesize={canSynthesize}

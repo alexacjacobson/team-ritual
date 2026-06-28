@@ -35,8 +35,8 @@ export default function Column({ column, label, color, cards, onAdd, onDelete })
           disabled={!text.trim()}
           aria-label={`Add ${label}`}
         >
-          +
-        </button>
+          <span className="btn-add-icon">+</span>
+</button>
       </div>
       <div className="cards">
         {cards.map((card) => (

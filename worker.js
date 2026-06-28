@@ -26,7 +26,7 @@ export default {
       }
 
       if (path === '/api/board/card' && request.method === 'POST') {
-        const { column, text } = await request.json();
+        const { column, text, initials } = await request.json();
         if (!['rose', 'bud', 'thorn'].includes(column) || !text?.trim()) {
           return new Response(JSON.stringify({ error: 'Invalid input' }), {
             status: 400,
@@ -41,6 +41,7 @@ export default {
           id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
           text: text.trim(),
           createdAt: new Date().toISOString(),
+          initials: (initials || '').slice(0, 3).toUpperCase(),
         };
         board[column].push(card);
         await env.RITUAL_KV.put('board', JSON.stringify(board));

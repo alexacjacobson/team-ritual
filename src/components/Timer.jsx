@@ -1,118 +1,144 @@
 import { useState, useEffect, useRef } from 'react'
+import { RotateCcw } from 'lucide-react'
 
 export default function Timer() {
   const [minutes, setMinutes] = useState(5)
-  const [timerState, setTimerState] = useState({
-    running: false,
-    startedAt: null,
-    duration: 300,
-  })
-  const [displayTime, setDisplayTime] = useState(300)
-  const rafRef = useRef(null)
+  const [running, setRunning] = useState(false)
+  const [remaining, setRemaining] = useState(300)
+  const [hasStarted, setHasStarted] = useState(false)
+  const startDurationRef = useRef(300)
+  const runningRef = useRef(false)
+  const intervalRef = useRef(null)
 
   useEffect(() => {
-    fetchTimer()
-    const interval = setInterval(fetchTimer, 2500)
-    return () => clearInterval(interval)
+    runningRef.current = running
+  }, [running])
+
+  useEffect(() => {
+    syncFromApi()
+    const poll = setInterval(syncFromApi, 2500)
+    return () => clearInterval(poll)
   }, [])
 
-  const fetchTimer = async () => {
+  const syncFromApi = async () => {
+    if (runningRef.current) return
     try {
       const res = await fetch('/api/timer')
-      if (res.ok) {
-        const data = await res.json()
-        setTimerState(data)
-        if (!data.running) {
-          setMinutes(Math.round(data.duration / 60))
-        }
+      if (!res.ok) return
+      const data = await res.json()
+      if (data.running) {
+        const elapsed = (Date.now() - data.startedAt) / 1000
+        const rem = Math.max(0, data.duration - elapsed)
+        startDurationRef.current = data.duration
+        setMinutes(Math.round(data.duration / 60))
+        setRemaining(Math.ceil(rem))
+        setRunning(true)
+        setHasStarted(true)
+      } else {
+        startDurationRef.current = data.duration
+        setMinutes(Math.round(data.duration / 60))
+        setRemaining(data.duration)
       }
     } catch (_) {}
   }
 
   useEffect(() => {
-    if (rafRef.current) cancelAnimationFrame(rafRef.current)
-
-    if (!timerState.running) {
-      setDisplayTime(timerState.duration)
+    if (!running) {
+      clearInterval(intervalRef.current)
       return
     }
-
-    const tick = () => {
-      const elapsed = (Date.now() - timerState.startedAt) / 1000
-      const remaining = Math.max(0, timerState.duration - elapsed)
-      setDisplayTime(Math.ceil(remaining))
-      if (remaining > 0) {
-        rafRef.current = requestAnimationFrame(tick)
-      }
-    }
-
-    rafRef.current = requestAnimationFrame(tick)
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current)
-    }
-  }, [timerState])
-
-  const start = async () => {
-    const duration = Math.max(60, minutes * 60)
-    try {
-      await fetch('/api/timer/start', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ duration }),
+    intervalRef.current = setInterval(() => {
+      setRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(intervalRef.current)
+          setRunning(false)
+          return 0
+        }
+        return prev - 1
       })
-      await fetchTimer()
-    } catch (_) {}
+    }, 1000)
+    return () => clearInterval(intervalRef.current)
+  }, [running])
+
+  const toggleStartPause = async () => {
+    if (running) {
+      setRunning(false)
+    } else {
+      if (remaining === 0) setRemaining(startDurationRef.current)
+      setRunning(true)
+      setHasStarted(true)
+      try {
+        await fetch('/api/timer/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ duration: startDurationRef.current }),
+        })
+      } catch (_) {}
+    }
   }
 
   const reset = async () => {
+    setRunning(false)
+    setHasStarted(false)
+    setRemaining(startDurationRef.current)
     try {
       await fetch('/api/timer/reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ duration: timerState.duration }),
+        body: JSON.stringify({ duration: startDurationRef.current }),
       })
-      await fetchTimer()
     } catch (_) {}
   }
 
-  const mins = Math.floor(displayTime / 60)
-  const secs = displayTime % 60
+  const adjustMinutes = (delta) => {
+    if (running) return
+    const next = Math.max(1, Math.min(60, minutes + delta))
+    setMinutes(next)
+    setRemaining(next * 60)
+    startDurationRef.current = next * 60
+  }
+
+  const mins = Math.floor(remaining / 60)
+  const secs = remaining % 60
   const timeStr = `${mins}:${String(secs).padStart(2, '0')}`
-  const expired = timerState.running && displayTime === 0
+  const expired = !running && remaining === 0
 
   return (
     <div className="timer">
       <div className="timer-display">
+        <button
+          className="btn-timer-step"
+          onClick={() => adjustMinutes(-1)}
+          disabled={running}
+          aria-label="Decrease minutes"
+        >
+          −
+        </button>
         <span className={`timer-time${expired ? ' expired' : ''}`}>
           {timeStr}
         </span>
+        <button
+          className="btn-timer-step"
+          onClick={() => adjustMinutes(1)}
+          disabled={running}
+          aria-label="Increase minutes"
+        >
+          +
+        </button>
       </div>
       <div className="timer-controls">
-        {!timerState.running && (
-          <div className="timer-input-wrap">
-            <input
-              className="timer-input"
-              type="number"
-              min="1"
-              max="60"
-              value={minutes}
-              onChange={(e) =>
-                setMinutes(Math.max(1, parseInt(e.target.value) || 1))
-              }
-              aria-label="Duration in minutes"
-            />
-            <span className="timer-input-label">min</span>
-          </div>
-        )}
-        {timerState.running ? (
-          <button className="btn-timer btn-timer-reset" onClick={reset}>
-            Reset
-          </button>
-        ) : (
-          <button className="btn-timer" onClick={start}>
-            Start
+        {hasStarted && (
+          <button
+            className="btn-timer-undo"
+            onClick={reset}
+            aria-label="Reset timer"
+          >
+            <RotateCcw size={14} />
           </button>
         )}
+        <button className="btn-timer-start" onClick={toggleStartPause}>
+          {running ? 'Pause' : 'Start'}
+        </button>
       </div>
     </div>
   )

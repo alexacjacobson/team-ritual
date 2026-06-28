@@ -3,7 +3,7 @@ import Column from './Column'
 const COLUMNS = [
   { key: 'rose', label: 'Rose', color: 'var(--deep-pink)' },
   { key: 'bud', label: 'Bud', color: 'var(--marigold)' },
-  { key: 'thorn', label: 'Thorn', color: 'var(--cobalt)' },
+  { key: 'thorn', label: 'Thorn', color: 'var(--forest)' },
 ]
 
 export default function Board({ board, onAdd, onDelete }) {
