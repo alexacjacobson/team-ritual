@@ -106,28 +106,25 @@ export default {
       // ── Synthesize ─────────────────────────────────────────────────────────
 
       if (path === '/api/synthesize' && request.method === 'POST') {
-        const { board } = await request.json();
+        const { rose, bud, thorn } = await request.json();
 
         const fmt = (cards) =>
           cards.length
-            ? cards.map((c) => `• ${c.text}`).join('\n')
+            ? cards.map((c) => `- ${c.text}`).join('\n')
             : '(none)';
 
-        const prompt = `You are a team retrospective facilitator. Analyze this Rose Bud Thorn board.
+        const userMessage = `Here are the retro cards:
 
-ROSES (what went well):
-${fmt(board.rose)}
+ROSES (what's working):
+${fmt(rose)}
 
 BUDS (opportunities):
-${fmt(board.bud)}
+${fmt(bud)}
 
-THORNS (challenges):
-${fmt(board.thorn)}
+THORNS (what's painful):
+${fmt(thorn)}
 
-Respond with ONLY valid JSON in this exact format, no other text:
-{"themes":["short theme 1","short theme 2","short theme 3"],"actionItems":["action 1","action 2","action 3"]}
-
-Keep themes to 4–6 words. Make action items specific and actionable. Include 3–5 items in each array.`;
+Synthesize these into themes and action items.`;
 
         try {
           const result = await env.AI.run(
@@ -137,15 +134,23 @@ Keep themes to 4–6 words. Make action items specific and actionable. Include 3
                 {
                   role: 'system',
                   content:
-                    'You are a concise team facilitator. Always respond with valid JSON only.',
+                    'You are a skilled facilitator helping a design team synthesize a Rose/Bud/Thorn retrospective. Rose = what\'s working well. Bud = opportunities or things with potential. Thorn = what\'s painful or not working. Your job is to read all the cards, identify 2-3 named themes that cut across the columns, and suggest 3-5 concrete, specific action items the team can commit to. Ground your response in what\'s actually on the board — do not give generic advice. Return ONLY valid JSON in this exact format with no other text: { "themes": ["theme 1", "theme 2"], "actionItems": ["action 1", "action 2", "action 3"] }',
                 },
-                { role: 'user', content: prompt },
+                { role: 'user', content: userMessage },
               ],
-              max_tokens: 600,
             }
           );
 
-          const text = result.response ?? '';
+          const response = result.response;
+          if (
+            response &&
+            typeof response === 'object' &&
+            response.themes &&
+            response.actionItems
+          ) {
+            return new Response(JSON.stringify(response), { headers });
+          }
+          const text = typeof response === 'string' ? response : JSON.stringify(response ?? '');
           const jsonMatch = text.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
             const parsed = JSON.parse(jsonMatch[0]);
@@ -158,6 +163,38 @@ Keep themes to 4–6 words. Make action items specific and actionable. Include 3
             { status: 500, headers }
           );
         }
+      }
+
+      // ── Rituals ────────────────────────────────────────────────────────────
+
+      if (path === '/api/rituals' && request.method === 'GET') {
+        const data = await env.RITUAL_KV.get('rituals');
+        const rituals = data ? JSON.parse(data) : [];
+        return new Response(JSON.stringify(rituals), { headers });
+      }
+
+      if (path === '/api/rituals' && request.method === 'POST') {
+        const { board, synthesis } = await request.json();
+        const data = await env.RITUAL_KV.get('rituals');
+        const rituals = data ? JSON.parse(data) : [];
+        const ritual = {
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          savedAt: new Date().toISOString(),
+          board,
+          synthesis,
+        };
+        rituals.unshift(ritual);
+        await env.RITUAL_KV.put('rituals', JSON.stringify(rituals));
+        return new Response(JSON.stringify(ritual), { headers });
+      }
+
+      if (path.startsWith('/api/rituals/') && request.method === 'DELETE') {
+        const id = path.split('/').pop();
+        const data = await env.RITUAL_KV.get('rituals');
+        const rituals = data ? JSON.parse(data) : [];
+        const filtered = rituals.filter((r) => r.id !== id);
+        await env.RITUAL_KV.put('rituals', JSON.stringify(filtered));
+        return new Response(JSON.stringify({ success: true }), { headers });
       }
 
       return new Response(JSON.stringify({ error: 'Not found' }), {

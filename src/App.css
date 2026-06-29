@@ -474,19 +474,16 @@ body {
 /* ── Synthesize ─────────────────────────────────────────────────────────────── */
 
 .synthesize-section {
-  position: absolute;
-  bottom: 50px;
-  right: var(--sp-5);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: var(--sp-4);
+  margin-top: 32px;
 }
 
 .btn-synthesize {
-  font-family: var(--font-display);
+  position: absolute;
+  bottom: 30px;
+  right: 30px;
+  font-family: var(--font-body);
   font-size: 16px;
-  font-weight: 400;
+  font-weight: 500;
   color: var(--white);
   background: var(--deep-pink);
   border: none;
@@ -511,11 +508,10 @@ body {
 }
 
 .synthesis-result {
-  width: 100%;
-  max-width: 640px;
   background: var(--white);
   border-radius: var(--r-card);
   padding: var(--sp-4);
+  margin-bottom: 80px;
   display: flex;
   flex-direction: column;
   gap: var(--sp-3);
@@ -526,7 +522,7 @@ body {
   font-size: 11px;
   font-weight: 400;
   color: var(--ash);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   margin-bottom: var(--sp-1);
 }
@@ -561,6 +557,212 @@ body {
   color: var(--ink);
 }
 
+.synthesis-theme-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.synthesis-theme-pill {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--deep-pink);
+  background: var(--petal);
+  border: none;
+  border-radius: var(--r-pill);
+  padding: 6px 16px;
+}
+
+.synthesis-action-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.synthesis-action-item {
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--ink);
+  line-height: 1.6;
+  padding-left: 24px;
+  position: relative;
+}
+
+.synthesis-action-item::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: var(--ink);
+}
+
+/* ── Synthesis Two-Column Layout ─────────────────────────────────────────────── */
+
+.synthesis-columns {
+  display: flex;
+  gap: 48px;
+  align-items: flex-start;
+}
+
+.synthesis-column {
+  flex: 1;
+}
+
+/* ── Save Ritual Button ──────────────────────────────────────────────────────── */
+
+.btn-save-ritual {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--forest);
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  cursor: pointer;
+  align-self: flex-end;
+}
+
+.btn-save-ritual:hover:not(:disabled) {
+  opacity: 0.7;
+}
+
+.btn-save-ritual:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+
+/* ── Past Rituals Button ─────────────────────────────────────────────────────── */
+
+.page-header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--sp-2);
+}
+
+.btn-past-rituals {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--white);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.btn-past-rituals:hover {
+  opacity: 0.7;
+}
+
+/* ── Past Rituals Panel ──────────────────────────────────────────────────────── */
+
+.past-rituals-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+}
+
+.past-rituals-panel {
+  background: var(--white);
+  border-radius: var(--r-card);
+  width: 680px;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 48px;
+  position: relative;
+}
+
+.past-rituals-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--sp-4);
+}
+
+.past-rituals-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--ink);
+  line-height: 1.1;
+}
+
+.btn-close-rituals {
+  font-family: var(--font-body);
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--ash);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.btn-close-rituals:hover {
+  color: var(--ink);
+}
+
+.ritual-card {
+  background: var(--white);
+  border-radius: var(--r-card);
+  border: 1px solid #eeebe3;
+  padding: 24px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.ritual-card-date {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--ash);
+  text-align: right;
+}
+
+.ritual-card-divider {
+  border: none;
+  border-top: 1px solid var(--linen);
+  margin: 0;
+}
+
+.btn-delete-ritual {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ash);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  align-self: flex-end;
+}
+
+.btn-delete-ritual:hover {
+  color: var(--deep-pink);
+}
+
+.ritual-empty {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--ash);
+  text-align: center;
+  padding: var(--sp-5) 0;
+}
+
 /* ── Clear Board ────────────────────────────────────────────────────────────── */
 
 .btn-clear {
@@ -585,13 +787,49 @@ body {
 
 /* ── Responsive ─────────────────────────────────────────────────────────────── */
 
-@media (max-width: 720px) {
+@media (max-width: 768px) {
+  .main {
+    padding: 24px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-3);
+  }
+
+  .page-header-right {
+    align-items: flex-start;
+  }
+
+  .timer {
+    align-items: flex-start;
+  }
+
   .board {
     grid-template-columns: 1fr;
   }
 
-  .main {
-    padding: 72px var(--sp-2) var(--sp-5);
+  .synthesize-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 16px;
+  }
+
+  .btn-synthesize {
+    position: relative;
+    bottom: auto;
+    right: auto;
+  }
+
+  .synthesis-result {
+    margin-bottom: 0;
+  }
+
+  .past-rituals-panel {
+    width: 90vw;
+    padding: 32px;
   }
 
   .timer-time {

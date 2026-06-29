@@ -3,6 +3,7 @@ import Timer from './components/Timer'
 import Board from './components/Board'
 import Synthesize from './components/Synthesize'
 import InitialsModal from './components/InitialsModal'
+import PastRituals from './components/PastRituals'
 
 export default function App() {
   const [userInitials, setUserInitials] = useState(
@@ -12,6 +13,7 @@ export default function App() {
   const [synthesis, setSynthesis] = useState(null)
   const [synthesizing, setSynthesizing] = useState(false)
   const [clearConfirm, setClearConfirm] = useState(false)
+  const [pastRitualsOpen, setPastRitualsOpen] = useState(false)
   const clearTimerRef = useRef(null)
 
   useEffect(() => {
@@ -87,7 +89,7 @@ export default function App() {
       const res = await fetch('/api/synthesize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ board }),
+        body: JSON.stringify(board),
       })
       setSynthesis(await res.json())
     } catch (_) {
@@ -95,6 +97,14 @@ export default function App() {
     } finally {
       setSynthesizing(false)
     }
+  }
+
+  const saveRitual = async (board, synthesis) => {
+    await fetch('/api/rituals', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ board, synthesis }),
+    })
   }
 
   const canSynthesize =
@@ -118,7 +128,15 @@ export default function App() {
               ))}
             </span>
           </div>
-          <Timer />
+          <div className="page-header-right">
+            <button
+              className="btn-past-rituals"
+              onClick={() => setPastRitualsOpen(true)}
+            >
+              Past rituals
+            </button>
+            <Timer />
+          </div>
         </div>
         <div className="board-card">
           <div className="board-card-top">
@@ -135,9 +153,14 @@ export default function App() {
             synthesizing={synthesizing}
             synthesis={synthesis}
             onSynthesize={synthesize}
+            board={board}
+            onSave={saveRitual}
           />
         </div>
       </main>
+      {pastRitualsOpen && (
+        <PastRituals onClose={() => setPastRitualsOpen(false)} />
+      )}
     </div>
   )
 }
