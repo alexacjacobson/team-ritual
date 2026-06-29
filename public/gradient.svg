@@ -1,0 +1,40 @@
+<svg width="1728" height="1117" viewBox="0 0 1728 1117" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_25_3)">
+<rect width="1728" height="1117" fill="url(#paint0_radial_25_3)"/>
+<g clip-path="url(#clip1_25_3)">
+<rect width="1117" height="1728" transform="translate(0 1117) rotate(-90)" fill="url(#paint1_radial_25_3)" fill-opacity="0.4"/>
+<ellipse cx="972.5" cy="666.5" rx="593.5" ry="328.5" transform="rotate(-15 972.5 666.5)" fill="url(#paint2_radial_25_3)"/>
+<ellipse cx="0.500005" cy="1116.5" rx="593.5" ry="494.5" transform="rotate(90 0.500005 1116.5)" fill="url(#paint3_radial_25_3)"/>
+<rect opacity="0.1" width="1722" height="1117"/>
+</g>
+</g>
+<defs>
+<radialGradient id="paint0_radial_25_3" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1744.5 -54.5) rotate(130.371) scale(1660.4 2568.64)">
+<stop offset="0.106414" stop-color="#FFB8E7"/>
+<stop offset="0.285839" stop-color="#D45FA8"/>
+<stop offset="0.627775" stop-color="#FF6E48"/>
+<stop offset="0.794208" stop-color="#FF8F8F"/>
+<stop offset="1" stop-color="#FFB8E7"/>
+</radialGradient>
+<radialGradient id="paint1_radial_25_3" cx="0" cy="0" r="1" gradientTransform="matrix(-695.216 1956.96 -1265 -2573.9 1127.67 -84.3115)" gradientUnits="userSpaceOnUse">
+<stop offset="0.106414" stop-color="#FFB8E7"/>
+<stop offset="0.285839" stop-color="#D45FA8"/>
+<stop offset="0.627775" stop-color="#FF6E48"/>
+<stop offset="1" stop-color="#FFB8E7"/>
+</radialGradient>
+<radialGradient id="paint2_radial_25_3" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(972.5 666.5) rotate(90) scale(328.5 593.5)">
+<stop stop-color="#FFB8E7" stop-opacity="0.5"/>
+<stop offset="1" stop-color="#FFB8E7" stop-opacity="0"/>
+</radialGradient>
+<radialGradient id="paint3_radial_25_3" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(0.5 1116.5) rotate(90) scale(494.5 593.5)">
+<stop stop-color="#D45FA8" stop-opacity="0.8"/>
+<stop offset="1" stop-color="#FFB8E7" stop-opacity="0"/>
+</radialGradient>
+<clipPath id="clip0_25_3">
+<rect width="1728" height="1117" fill="white"/>
+</clipPath>
+<clipPath id="clip1_25_3">
+<rect width="1117" height="1728" fill="white" transform="translate(0 1117) rotate(-90)"/>
+</clipPath>
+</defs>
+</svg>

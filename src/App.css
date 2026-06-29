@@ -41,12 +41,10 @@
 }
 
 body {
-  background-color: #D45FA8;
-  background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeBlend in='SourceGraphic' mode='screen'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E"),
-    linear-gradient(135deg, #FF6E48 0%, #D45FA8 35%, #FFB8E7 70%, #FF6E48 100%);
-  background-repeat: repeat, no-repeat;
-  background-size: 200px 200px, cover;
+  background-image: url('/gradient.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   color: var(--ink);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
@@ -166,7 +164,6 @@ body {
 
 .app {
   min-height: 100vh;
-  background: linear-gradient(135deg, #FF6E48 0%, #D45FA8 35%, #FFB8E7 70%, #FF6E48 100%);
   position: relative;
   z-index: 1;
 }
