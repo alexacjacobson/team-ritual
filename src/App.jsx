@@ -6,9 +6,7 @@ import InitialsModal from './components/InitialsModal'
 import PastRituals from './components/PastRituals'
 
 export default function App() {
-  const [userInitials, setUserInitials] = useState(
-    () => localStorage.getItem('userInitials') || null
-  )
+  const [userInitials, setUserInitials] = useState(null)
   const [board, setBoard] = useState({ rose: [], bud: [], thorn: [] })
   const [synthesis, setSynthesis] = useState(null)
   const [synthesizing, setSynthesizing] = useState(false)
