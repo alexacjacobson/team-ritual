@@ -106,7 +106,17 @@ export default function App() {
       <main className="main">
         <div className="page-header">
           <div className="page-title">
-            <span className="page-title-eyebrow">Ritual:</span>
+            <span className="page-title-eyebrow">
+              {'Ritual:'.split('').map((char, i) => (
+                <span
+                  key={i}
+                  className="wave-char"
+                  style={{ animationDelay: `${i * 0.05}s` }}
+                >
+                  {char}
+                </span>
+              ))}
+            </span>
           </div>
           <Timer />
         </div>
