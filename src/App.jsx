@@ -2,16 +2,20 @@ import { useState, useEffect, useRef } from 'react'
 import Timer from './components/Timer'
 import Board from './components/Board'
 import Synthesize from './components/Synthesize'
-import InitialsModal from './components/InitialsModal'
+import Intro from './components/Intro'
 import PastRituals from './components/PastRituals'
+import FacilitatorGuide from './components/FacilitatorGuide'
 
 export default function App() {
-  const [userInitials, setUserInitials] = useState(null)
+  const [showIntro, setShowIntro] = useState(true)
+  const [userName, setUserName] = useState('')
   const [board, setBoard] = useState({ rose: [], bud: [], thorn: [] })
   const [synthesis, setSynthesis] = useState(null)
   const [synthesizing, setSynthesizing] = useState(false)
   const [clearConfirm, setClearConfirm] = useState(false)
   const [pastRitualsOpen, setPastRitualsOpen] = useState(false)
+  const [reflectPrompts, setReflectPrompts] = useState(null)
+  const [reflectLoading, setReflectLoading] = useState(false)
   const clearTimerRef = useRef(null)
 
   useEffect(() => {
@@ -27,11 +31,6 @@ export default function App() {
     } catch (_) {}
   }
 
-  const handleJoin = (initials) => {
-    localStorage.setItem('userInitials', initials)
-    setUserInitials(initials)
-  }
-
   const addCard = async (column, text) => {
     const tempId = `temp-${Date.now()}`
     setBoard((prev) => ({
@@ -42,7 +41,7 @@ export default function App() {
           id: tempId,
           text,
           createdAt: new Date().toISOString(),
-          initials: userInitials || '',
+          name: userName || '',
         },
       ],
     }))
@@ -50,7 +49,7 @@ export default function App() {
       await fetch('/api/board/card', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ column, text, initials: userInitials || '' }),
+        body: JSON.stringify({ column, text, name: userName || '' }),
       })
     } catch (_) {}
   }
@@ -97,6 +96,29 @@ export default function App() {
     }
   }
 
+  const toggleReflect = async () => {
+    if (reflectPrompts !== null) {
+      setReflectPrompts(null)
+      return
+    }
+    setReflectLoading(true)
+    try {
+      const res = await fetch('/api/reflection-prompts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(board),
+      })
+      const data = await res.json()
+      setReflectPrompts(
+        data.rose && data.bud && data.thorn ? data : null
+      )
+    } catch (_) {
+      setReflectPrompts(null)
+    } finally {
+      setReflectLoading(false)
+    }
+  }
+
   const saveRitual = async (board, synthesis) => {
     await fetch('/api/rituals', {
       method: 'POST',
@@ -105,26 +127,39 @@ export default function App() {
     })
   }
 
+  if (showIntro) {
+    return (
+      <Intro
+        onComplete={(name) => {
+          setUserName(name)
+          setShowIntro(false)
+        }}
+      />
+    )
+  }
+
   const canSynthesize =
     board.rose.length > 0 && board.bud.length > 0 && board.thorn.length > 0
 
   return (
     <div className="app">
-      {!userInitials && <InitialsModal onConfirm={handleJoin} />}
       <main className="main">
         <div className="page-header">
-          <div className="page-title">
-            <span className="page-title-eyebrow">
-              {'Ritual:'.split('').map((char, i) => (
-                <span
-                  key={i}
-                  className="wave-char"
-                  style={{ animationDelay: `${i * 0.05}s` }}
-                >
-                  {char}
-                </span>
-              ))}
-            </span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'flex-start' }}>
+            <FacilitatorGuide />
+            <div className="page-title">
+              <span className="page-title-eyebrow">
+                {'Ritual: Retrospective'.split('').map((char, i) => (
+                  <span
+                    key={i}
+                    className="wave-char"
+                    style={{ animationDelay: `${i * 0.05}s` }}
+                  >
+                    {char}
+                  </span>
+                ))}
+              </span>
+            </div>
           </div>
           <div className="page-header-right">
             <button
@@ -139,13 +174,23 @@ export default function App() {
         <div className="board-card">
           <div className="board-card-top">
             <button
+              className="btn-reflect"
+              onClick={toggleReflect}
+              disabled={reflectLoading}
+            >
+              {reflectLoading
+                ? <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--ash)' }}>Thinking...</span>
+                : reflectPrompts !== null ? 'Hide prompts' : 'Generate prompts'
+              }
+            </button>
+            <button
               className={`btn-clear${clearConfirm ? ' confirming' : ''}`}
               onClick={clearBoard}
             >
               {clearConfirm ? 'Are you sure?' : 'Clear board'}
             </button>
           </div>
-          <Board board={board} onAdd={addCard} onDelete={deleteCard} />
+          <Board board={board} onAdd={addCard} onDelete={deleteCard} prompts={reflectPrompts} />
           <Synthesize
             canSynthesize={canSynthesize}
             synthesizing={synthesizing}

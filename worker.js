@@ -26,7 +26,7 @@ export default {
       }
 
       if (path === '/api/board/card' && request.method === 'POST') {
-        const { column, text, initials } = await request.json();
+        const { column, text, name } = await request.json();
         if (!['rose', 'bud', 'thorn'].includes(column) || !text?.trim()) {
           return new Response(JSON.stringify({ error: 'Invalid input' }), {
             status: 400,
@@ -41,7 +41,7 @@ export default {
           id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
           text: text.trim(),
           createdAt: new Date().toISOString(),
-          initials: (initials || '').slice(0, 3).toUpperCase(),
+          name: (name || '').trim(),
         };
         board[column].push(card);
         await env.RITUAL_KV.put('board', JSON.stringify(board));
@@ -160,6 +160,63 @@ Synthesize these into themes and action items.`;
         } catch (e) {
           return new Response(
             JSON.stringify({ error: `AI synthesis failed: ${e.message}` }),
+            { status: 500, headers }
+          );
+        }
+      }
+
+      // ── Reflection Prompts ─────────────────────────────────────────────────
+
+      if (path === '/api/reflection-prompts' && request.method === 'POST') {
+        const { rose, bud, thorn } = await request.json();
+
+        const fmt = (cards) =>
+          cards.length
+            ? cards.map((c) => `- ${c.text}`).join('\n')
+            : '(none)';
+
+        const userMessage = `Here are the retro cards:
+
+ROSES (what's working):
+${fmt(rose)}
+
+BUDS (opportunities):
+${fmt(bud)}
+
+THORNS (what's painful):
+${fmt(thorn)}
+
+Generate reflection questions for the facilitator.`;
+
+        try {
+          const result = await env.AI.run(
+            '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+            {
+              messages: [
+                {
+                  role: 'system',
+                  content:
+                    'You are a retrospective facilitator. Generate exactly 3 short reflection prompts for each of the three Rose/Bud/Thorn categories to help team members think before writing their cards. Rose prompts should help surface wins and positive moments. Bud prompts should help identify opportunities and potential. Thorn prompts should help surface blockers and frustrations. Each prompt should be one concise question under 20 words. Return ONLY valid JSON with keys rose, bud, thorn, each containing an array of 3 strings.',
+                },
+                { role: 'user', content: userMessage },
+              ],
+            }
+          );
+
+          const response = result.response;
+          if (response && typeof response === 'object' && response.rose) {
+            return new Response(JSON.stringify(response), { headers });
+          }
+          const text = typeof response === 'string' ? response : JSON.stringify(response ?? '');
+          const jsonMatch = text.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const parsed = JSON.parse(jsonMatch[0]);
+            return new Response(JSON.stringify(parsed), { headers });
+          }
+          throw new Error('No JSON in response');
+        } catch (e) {
+          return new Response(
+            JSON.stringify({ error: `AI prompt generation failed: ${e.message}` }),
             { status: 500, headers }
           );
         }

@@ -6,7 +6,7 @@ const COLUMNS = [
   { key: 'thorn', label: 'Thorn', color: 'var(--forest)' },
 ]
 
-export default function Board({ board, onAdd, onDelete }) {
+export default function Board({ board, onAdd, onDelete, prompts }) {
   return (
     <div className="board">
       {COLUMNS.map((col) => (
@@ -18,6 +18,7 @@ export default function Board({ board, onAdd, onDelete }) {
           cards={board[col.key] || []}
           onAdd={onAdd}
           onDelete={onDelete}
+          prompts={prompts?.[col.key] || null}
         />
       ))}
     </div>

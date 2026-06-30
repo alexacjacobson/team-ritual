@@ -9,8 +9,8 @@ export default function Card({ card, color, onDelete }) {
       >
         ×
       </button>
-      {card.initials && (
-        <span className="card-initials">{card.initials}</span>
+      {card.name && (
+        <span className="card-name">{card.name}</span>
       )}
     </div>
   )
