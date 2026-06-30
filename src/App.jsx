@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Timer from './components/Timer'
 import Board from './components/Board'
 import Synthesize from './components/Synthesize'
@@ -17,6 +17,37 @@ export default function App() {
   const [reflectPrompts, setReflectPrompts] = useState(null)
   const [reflectLoading, setReflectLoading] = useState(false)
   const clearTimerRef = useRef(null)
+  const waveCharRefs = useRef([])
+  const waveRafRef = useRef(null)
+  const waveMouse = useRef({ x: -999, y: -999 })
+
+  const updateWaveChars = useCallback(() => {
+    const { x, y } = waveMouse.current
+    waveCharRefs.current.forEach((el) => {
+      if (!el) return
+      const rect = el.getBoundingClientRect()
+      const cx = rect.left + rect.width / 2
+      const cy = rect.top + rect.height / 2
+      const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2)
+      const lift = dist < 150 ? -30 * (1 - dist / 150) : 0
+      el.style.transform = `translateY(${lift}px)`
+    })
+    waveRafRef.current = null
+  }, [])
+
+  useEffect(() => {
+    const onMouseMove = (e) => {
+      waveMouse.current = { x: e.clientX, y: e.clientY }
+      if (!waveRafRef.current) {
+        waveRafRef.current = requestAnimationFrame(updateWaveChars)
+      }
+    }
+    window.addEventListener('mousemove', onMouseMove)
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove)
+      if (waveRafRef.current) cancelAnimationFrame(waveRafRef.current)
+    }
+  }, [updateWaveChars])
 
   useEffect(() => {
     fetchBoard()
@@ -152,10 +183,11 @@ export default function App() {
                 {'Ritual: Retrospective'.split('').map((char, i) => (
                   <span
                     key={i}
+                    ref={(el) => (waveCharRefs.current[i] = el)}
                     className="wave-char"
-                    style={{ animationDelay: `${i * 0.05}s` }}
+                    style={{ display: 'inline-block', animation: 'none', transition: 'transform 0.08s ease-out' }}
                   >
-                    {char}
+                    {char === ' ' ? ' ' : char}
                   </span>
                 ))}
               </span>

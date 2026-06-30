@@ -78,54 +78,63 @@ export default function FacilitatorGuide() {
   const [open, setOpen] = useState(true)
   const [agendaTab, setAgendaTab] = useState('20 min')
 
-  // Push .main right when sidebar is open, restore on close.
+  // Push content right when sidebar is open by padding .app from the left.
+  // Using paddingLeft on .app (not marginLeft on .main) ensures the centered
+  // .main always shifts rightward regardless of viewport width.
   useEffect(() => {
-    const el = document.querySelector('.main')
+    const el = document.querySelector('.app')
     if (!el) return
-    el.style.transition = 'margin-left 0.3s ease'
-    el.style.marginLeft = open ? '324px' : ''
+    el.style.transition = 'padding-left 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+    el.style.paddingLeft = open ? '324px' : '0px'
   }, [open])
 
-  // Clean up inline styles on unmount.
+  // Set overflow-x on body to prevent horizontal scrollbar during panel slide-in.
+  // Clean up all inline styles on unmount.
   useEffect(() => {
+    document.body.style.overflowX = 'hidden'
     return () => {
-      const el = document.querySelector('.main')
+      document.body.style.overflowX = ''
+      const el = document.querySelector('.app')
       if (!el) return
       el.style.transition = ''
-      el.style.marginLeft = ''
+      el.style.paddingLeft = ''
     }
   }, [])
 
   return (
     <>
-      {/* Trigger pill — appears at the same position as the panel title when closed */}
-      {!open && (
-        <button
-          className="btn-facilitator-guide"
-          style={{
-            position: 'fixed',
-            top: '23px',
-            left: '0',
-            transform: 'none',
-            writingMode: 'horizontal-tb',
-            textOrientation: 'mixed',
-            background: 'transparent',
-            backdropFilter: 'none',
-            WebkitBackdropFilter: 'none',
-            border: '1.5px solid #ffffff',
-            borderRadius: '999px',
-            padding: '9px 20px',
-            fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
-            fontSize: '13px',
-            fontWeight: 500,
-            color: '#ffffff',
-          }}
-          onClick={() => setOpen(true)}
-          aria-label="Open user manual"
-        >
+      {/* File-tab trigger — slides right with the panel, always clickable */}
+      <button
+        className="btn-facilitator-guide"
+        onClick={() => setOpen(prev => !prev)}
+        aria-label={open ? 'Close user manual' : 'Open user manual'}
+        style={{
+          position: 'fixed',
+          left: open ? '300px' : '0',
+          top: '212px',
+          transform: 'none',
+          transition: 'left 0.3s ease',
+          background: '#FAF8F2',
+          border: 'none',
+          borderRadius: '0 4px 4px 0',
+          padding: '20px 10px',
+          cursor: 'pointer',
+          writingMode: 'vertical-rl',
+          zIndex: 490,
+        }}
+      >
+        <span style={{
+          fontFamily: "'JetBrains Mono', monospace",
+          fontSize: '11px',
+          fontWeight: 400,
+          color: '#1A1A1A',
+          letterSpacing: '0.06em',
+          display: 'block',
+          transform: 'rotate(180deg)',
+        }}>
           User Manual
-        </button>
-      )}
+        </span>
+      </button>
 
       {/* Sidebar — slides in from left, linen background */}
       <div
@@ -137,42 +146,9 @@ export default function FacilitatorGuide() {
           WebkitBackdropFilter: 'none',
           borderRight: 'none',
           border: 'none',
+          borderRadius: '0 4px 4px 0',
         }}
       >
-        {/* Header: title + close arrow */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '20px',
-        }}>
-          <span style={{
-            fontFamily: 'var(--font-body)',
-            fontSize: '14px',
-            fontWeight: 500,
-            color: '#1A1A1A',
-          }}>
-            User Manual
-          </span>
-          <button
-            onClick={() => setOpen(false)}
-            aria-label="Close sidebar"
-            style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: '16px',
-              fontWeight: 400,
-              color: '#1A1A1A',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 0,
-              lineHeight: 1,
-            }}
-          >
-            ←
-          </button>
-        </div>
-
         {/* Card 1 — What is this */}
         <GuideCard>
           <Eyebrow>What is this</Eyebrow>
