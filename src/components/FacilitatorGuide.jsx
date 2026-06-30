@@ -151,7 +151,7 @@ export default function FacilitatorGuide() {
       >
         {/* Card 1 — What is this */}
         <GuideCard>
-          <Eyebrow>What is this</Eyebrow>
+          <Eyebrow>Here's the scoop</Eyebrow>
           <Body>
             A team reflection format. Add cards to each column based on your experience. Rose = something that went well. Bud = something with potential you'd like to explore. Thorn = something that felt painful or blocked.
           </Body>
@@ -213,7 +213,7 @@ export default function FacilitatorGuide() {
 
         {/* Card 4 — Common pitfalls */}
         <GuideCard>
-          <Eyebrow>Common pitfalls</Eyebrow>
+          <Eyebrow>Stay mindful</Eyebrow>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {PITFALLS.map((text, i) => (
               <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>

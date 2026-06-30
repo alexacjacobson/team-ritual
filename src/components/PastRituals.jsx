@@ -47,15 +47,48 @@ export default function PastRituals({ onClose }) {
           <div key={ritual.id} className="ritual-card">
             <div className="ritual-card-date">{formatDate(ritual.savedAt)}</div>
 
+            {ritual.synthesis.title && (
+              <p style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: '28px',
+                fontWeight: 400,
+                fontStyle: 'italic',
+                color: 'var(--ink)',
+                lineHeight: 1.2,
+                marginBottom: '24px',
+              }}>
+                {ritual.synthesis.title}
+              </p>
+            )}
+
             {ritual.synthesis.themes?.length > 0 && (
               <div>
                 <p className="synthesis-section-label">THEMES</p>
-                <div className="synthesis-theme-pills">
-                  {ritual.synthesis.themes.map((theme, i) => (
-                    <span key={i} className="synthesis-theme-pill">
-                      {toSentenceCase(theme)}
-                    </span>
-                  ))}
+                <div className="synthesis-theme-pills" style={{ flexDirection: 'column', gap: 0 }}>
+                  {ritual.synthesis.themes.map((theme, i) => {
+                    const name = typeof theme === 'string' ? theme : theme.name
+                    const description = typeof theme === 'object' && theme !== null ? theme.description : null
+                    return (
+                      <div key={i}>
+                        <span className="synthesis-theme-pill">
+                          {toSentenceCase(name)}
+                        </span>
+                        {description && (
+                          <p style={{
+                            fontFamily: 'var(--font-body)',
+                            fontSize: '16px',
+                            fontWeight: 400,
+                            color: 'var(--ink)',
+                            marginTop: '6px',
+                            marginBottom: '16px',
+                            lineHeight: 1.6,
+                          }}>
+                            {description}
+                          </p>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             )}
@@ -66,14 +99,31 @@ export default function PastRituals({ onClose }) {
               <div>
                 <p className="synthesis-section-label">ACTION ITEMS</p>
                 <div className="synthesis-action-list">
-                  {ritual.synthesis.actionItems.map((item, i) => (
-                    <div key={i} className="synthesis-action-item">
-                      {toSentenceCase(item)}
-                    </div>
-                  ))}
+                  {ritual.synthesis.actionItems.map((item, i) => {
+                    const text = typeof item === 'string' ? item : item.text
+                    const isHigh = typeof item === 'object' && item !== null && item.priority === 'high'
+                    return (
+                      <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                        {isHigh && (
+                          <span style={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            background: '#FF6E48',
+                            flexShrink: 0,
+                            marginTop: '8px',
+                          }} />
+                        )}
+                        <div className="synthesis-action-item" style={{ flex: 1 }}>
+                          {toSentenceCase(text)}
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             )}
+
             <button
               className="btn-delete-ritual"
               onClick={() => deleteRitual(ritual.id)}

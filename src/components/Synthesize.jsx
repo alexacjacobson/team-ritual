@@ -46,27 +46,77 @@ export default function Synthesize({
 
       {synthesis && !synthesis.error && (
         <div className="synthesis-result">
+          {synthesis.title && (
+            <div style={{ animation: 'fadeSlideIn 0.4s ease both', animationDelay: '0ms', marginBottom: '24px' }}>
+              <p style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: '28px',
+                fontWeight: 400,
+                fontStyle: 'italic',
+                color: 'var(--ink)',
+                lineHeight: 1.2,
+              }}>
+                {synthesis.title}
+              </p>
+            </div>
+          )}
           {synthesis.themes?.length > 0 && (
-            <div>
+            <div style={{ animation: 'fadeSlideIn 0.4s ease both', animationDelay: synthesis.title ? '150ms' : '0ms' }}>
               <p className="synthesis-section-label">THEMES</p>
-              <div className="synthesis-theme-pills">
-                {synthesis.themes.map((theme, i) => (
-                  <span key={i} className="synthesis-theme-pill">
-                    {toSentenceCase(theme)}
-                  </span>
-                ))}
+              {/* flex-direction: column so each theme+description stacks vertically */}
+              <div className="synthesis-theme-pills" style={{ flexDirection: 'column', gap: 0 }}>
+                {synthesis.themes.map((theme, i) => {
+                  const name = typeof theme === 'string' ? theme : theme.name
+                  const description = typeof theme === 'object' && theme !== null ? theme.description : null
+                  return (
+                    <div key={i}>
+                      <span className="synthesis-theme-pill">
+                        {toSentenceCase(name)}
+                      </span>
+                      {description && (
+                        <p style={{
+                          fontFamily: 'var(--font-body)',
+                          fontSize: '16px',
+                          fontWeight: 400,
+                          color: 'var(--ink)',
+                          marginTop: '6px',
+                          marginBottom: '16px',
+                          lineHeight: 1.6,
+                        }}>
+                          {description}
+                        </p>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )}
           {synthesis.actionItems?.length > 0 && (
-            <div>
+            <div style={{ animation: 'fadeSlideIn 0.4s ease both', animationDelay: synthesis.title ? '300ms' : '150ms' }}>
               <p className="synthesis-section-label">ACTION ITEMS</p>
               <div className="synthesis-action-list">
-                {synthesis.actionItems.map((item, i) => (
-                  <div key={i} className="synthesis-action-item">
-                    {toSentenceCase(item)}
-                  </div>
-                ))}
+                {synthesis.actionItems.map((item, i) => {
+                  const text = typeof item === 'string' ? item : item.text
+                  const isHigh = typeof item === 'object' && item !== null && item.priority === 'high'
+                  return (
+                    <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                      {isHigh && (
+                        <span style={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          background: '#FF6E48',
+                          flexShrink: 0,
+                          marginTop: '8px',
+                        }} />
+                      )}
+                      <div className="synthesis-action-item" style={{ flex: 1 }}>
+                        {toSentenceCase(text)}
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )}

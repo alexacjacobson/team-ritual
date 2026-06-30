@@ -130,11 +130,12 @@ Synthesize these into themes and action items.`;
           const result = await env.AI.run(
             '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
             {
+              max_tokens: 1024,
               messages: [
                 {
                   role: 'system',
                   content:
-                    'You are a skilled facilitator helping a design team synthesize a Rose/Bud/Thorn retrospective. Rose = what\'s working well. Bud = opportunities or things with potential. Thorn = what\'s painful or not working. Your job is to read all the cards, identify 2-3 named themes that cut across the columns, and suggest 3-5 concrete, specific action items the team can commit to. Ground your response in what\'s actually on the board — do not give generic advice. Return ONLY valid JSON in this exact format with no other text: { "themes": ["theme 1", "theme 2"], "actionItems": ["action 1", "action 2", "action 3"] }',
+                    'You are a skilled facilitator helping a design team synthesize a Rose/Bud/Thorn retrospective. Rose = what\'s working well. Bud = opportunities or things with potential. Thorn = what\'s painful or not working. First, write one short creative title for this retrospective session — 3 to 6 words, capturing the main theme or feeling of the week in an evocative but not cheesy way (think: a chapter title, not a corporate headline). Then identify 2-3 named themes that cut across the columns. For each theme, write one concise sentence explaining why it emerged, referencing the actual pattern in the cards without quoting verbatim. Then suggest 3-5 concrete action items. For each action item, assess its priority as "high" if it directly addresses a Thorn or a recurring pattern across multiple cards, or "normal" otherwise. Ground everything in what\'s actually on the board — do not give generic advice. Return ONLY valid JSON in this exact format with no other text: { "title": "creative session title", "themes": [{ "name": "theme name", "description": "one sentence explaining why this theme emerged" }], "actionItems": [{ "text": "action item text", "priority": "high" or "normal" }] }',
                 },
                 { role: 'user', content: userMessage },
               ],
@@ -142,6 +143,9 @@ Synthesize these into themes and action items.`;
           );
 
           const response = result.response;
+          console.log('[synthesize] raw AI response:', JSON.stringify(response));
+
+          // Fast path: Workers AI already parsed the JSON into an object.
           if (
             response &&
             typeof response === 'object' &&
@@ -150,16 +154,37 @@ Synthesize these into themes and action items.`;
           ) {
             return new Response(JSON.stringify(response), { headers });
           }
+
+          // Slow path: response is a string — extract and parse JSON from it.
           const text = typeof response === 'string' ? response : JSON.stringify(response ?? '');
-          const jsonMatch = text.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            const parsed = JSON.parse(jsonMatch[0]);
+
+          // Try the full greedy match first, then fall back to first-{/last-} slice
+          // to handle cases where the model emits trailing text after the closing brace.
+          const tryParse = (str) => {
+            try { return JSON.parse(str); } catch (_) { return null; }
+          };
+
+          const greedyMatch = text.match(/\{[\s\S]*\}/);
+          let parsed = greedyMatch ? tryParse(greedyMatch[0]) : null;
+
+          if (!parsed) {
+            // Fallback: slice from first { to last } and retry.
+            const start = text.indexOf('{');
+            const end = text.lastIndexOf('}');
+            if (start !== -1 && end > start) {
+              parsed = tryParse(text.slice(start, end + 1));
+            }
+          }
+
+          if (parsed && parsed.themes && parsed.actionItems) {
             return new Response(JSON.stringify(parsed), { headers });
           }
-          throw new Error('No JSON in response');
+
+          throw new Error('Could not extract valid JSON from AI response');
         } catch (e) {
+          console.error('[synthesize] error:', e.message);
           return new Response(
-            JSON.stringify({ error: `AI synthesis failed: ${e.message}` }),
+            JSON.stringify({ error: 'Synthesis failed, please try again.' }),
             { status: 500, headers }
           );
         }
@@ -175,6 +200,16 @@ Synthesize these into themes and action items.`;
             ? cards.map((c) => `- ${c.text}`).join('\n')
             : '(none)';
 
+        const angles = [
+          "team dynamics and how people worked together",
+          "process and how work actually flowed",
+          "communication and information sharing",
+          "individual growth and what people learned",
+          "outcomes and what got delivered",
+          "decision-making and how choices were made"
+        ];
+        const angle = angles[Math.floor(Math.random() * angles.length)];
+
         const userMessage = `Here are the retro cards:
 
 ROSES (what's working):
@@ -186,7 +221,7 @@ ${fmt(bud)}
 THORNS (what's painful):
 ${fmt(thorn)}
 
-Generate reflection questions for the facilitator.`;
+Generate reflection questions for the facilitator. For this round, lean into the angle of ${angle} when crafting your prompts, while still following the Rose/Bud/Thorn and GROW framing from your instructions.`;
 
         try {
           const result = await env.AI.run(
@@ -196,7 +231,7 @@ Generate reflection questions for the facilitator.`;
                 {
                   role: 'system',
                   content:
-                    'You are a retrospective facilitator. Generate exactly 3 short reflection prompts for each of the three Rose/Bud/Thorn categories to help team members think before writing their cards. Rose prompts should help surface wins and positive moments. Bud prompts should help identify opportunities and potential. Thorn prompts should help surface blockers and frustrations. Each prompt should be one concise question under 20 words. Return ONLY valid JSON with keys rose, bud, thorn, each containing an array of 3 strings.',
+                    'You are a retrospective facilitator trained in the Rose/Bud/Thorn framework and the GROW coaching model. Your guiding principles:\n\nRose/Bud/Thorn framework: Rose = what\'s working well and should be celebrated. Bud = an opportunity or early-stage idea with potential. Thorn = what\'s painful, blocked, or needs attention — not a complaint, but a signal for where the team can grow.\n\nGROW model influence: Good reflection prompts mirror the GROW structure — Goal (what were we aiming for), Reality (what actually happened), Options (what could change), Will (what will we commit to). Let this structure inform the angle of your questions even though you are not running a full GROW session.\n\nMultiplier principle: The best facilitators ask questions that amplify the team\'s own thinking rather than supplying answers. Prompts should open reflection, not lead to a single \'correct\' response.\n\nGenerate exactly 3 reflection prompts for each of the three Rose/Bud/Thorn categories to help team members think before writing their cards:\n- Rose prompts surface genuine wins, using a Reality-oriented lens (what actually happened that felt good)\n- Bud prompts surface potential, using an Options-oriented lens (what could we explore or try)\n- Thorn prompts surface blockers, using a Goal-gap lens (where did reality diverge from what we aimed for)\n\nEach prompt should be one concise, open-ended question under 20 words. Vary your phrasing and angle across requests — draw from team dynamics, process, communication, individual growth, and outcomes so prompts don\'t feel repetitive. Return ONLY valid JSON with keys rose, bud, thorn, each containing an array of 3 strings.',
                 },
                 { role: 'user', content: userMessage },
               ],
